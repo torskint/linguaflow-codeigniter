@@ -55,7 +55,7 @@ class CurlHubClient implements HubClient
 			return null;
 		}
 
-		throw HubException::fromHub($response['status'], $error['error']['code'] ?? null, (string) ($error['error']['message'] ?? ''));
+		throw HubException::fromHub($response['status'], $error['error']['code'] ?? null, (string) ($error['error']['message'] ?? ''), $this->requestId($response['headers'], $error));
 	}
 
 	/**
@@ -131,9 +131,21 @@ class CurlHubClient implements HubClient
 		$json = $handle === null ? json_decode((string) $body, true) : null;
 
 		if ($check && ($status < 200 || $status >= 300)) {
-			throw HubException::fromHub($status, is_array($json) ? ($json['error']['code'] ?? null) : null, is_array($json) ? (string) ($json['error']['message'] ?? '') : '');
+			throw HubException::fromHub($status, is_array($json) ? ($json['error']['code'] ?? null) : null, is_array($json) ? (string) ($json['error']['message'] ?? '') : '', $this->requestId($headers, $json));
 		}
 
 		return ['status' => $status, 'headers' => $headers, 'json' => is_array($json) ? $json : null];
+	}
+
+	/**
+	 * Identifiant de la requête donné par le hub : l'en-tête X-Request-Id, ou à défaut `error.request_id` du corps.
+	 *
+	 * @param  array<string, string>  $headers  en-têtes en minuscules
+	 */
+	private function requestId(array $headers, mixed $json): ?string
+	{
+		$id = $headers['x-request-id'] ?? (is_array($json) ? ($json['error']['request_id'] ?? null) : null);
+
+		return is_string($id) && $id !== '' ? $id : null;
 	}
 }

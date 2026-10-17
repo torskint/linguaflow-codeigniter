@@ -60,6 +60,12 @@ Chaque requête est vérifiée : signature HMAC-SHA256 (`X-Hub-Signature`), date
 téléchargé et fusionné après l'envoi de la réponse (PHP-FPM) ; en cas d'échec, le sondage cron reprend l'envoi. Exclure la route du filtre CSRF
 si l'application l'active globalement (`$globals['before']['csrf'] = ['except' => ['linguaflow/webhook']]`).
 
+## Signaler une erreur du hub
+
+Quand le hub refuse ou échoue une requête, le message affiché par les commandes (`linguaflow:doctor`, `linguaflow:send`, `linguaflow:sync`, `linguaflow:status`)
+se termine par `[X-Request-Id : …]`. Citer cet identifiant au support : il retrouve l'appel exact dans l'**Activité API** du hub (recherche par identifiant
+de requête). Une panne réseau n'a pas d'identifiant, puisque le hub n'a pas répondu.
+
 ## Limites connues (v1)
 
 - Seul `app/Language` est lu (pas les dossiers de langue de modules ni de paquets).
